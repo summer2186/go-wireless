@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/theojulienne/go-wireless"
+	"github.com/summer2186/go-wireless"
 )
 
 func main() {

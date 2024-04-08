@@ -7,18 +7,27 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	"math/rand"
 	"net"
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
-const CONN_MAX_LISTEN_BUFF = 3 * 1024 // Allow 3kB of buffer for listening to events
+const ConnMaxListenBuff = 3 * 1024 // Allow 3kB of buffer for listening to events
 
-func init() {
-	rand.Seed(time.Now().Unix())
+var (
+	clientCount    uint32
+	clientCountMtx sync.Mutex
+)
+
+func getClientCount() (rv uint32) {
+	clientCountMtx.Lock()
+	rv = clientCount
+	clientCount += 1
+	clientCountMtx.Unlock()
+	return
 }
 
 // Conn represents a connection to a WPA supplicant control interface
@@ -60,7 +69,7 @@ func (c *Conn) Close() error {
 }
 
 func (c *Conn) listen() {
-	buf := make([]byte, CONN_MAX_LISTEN_BUFF)
+	buf := make([]byte, ConnMaxListenBuff)
 	for {
 		select {
 		case <-c.quit:
@@ -111,7 +120,7 @@ func (c *Conn) init() error {
 		c.WithLogOutput(os.Stderr)
 	}
 
-	c.lsockname = fmt.Sprintf("/tmp/wpa_ctrl_%d_%d", os.Getpid(), rand.Intn(10000))
+	c.lsockname = fmt.Sprintf("/tmp/wpa_ctrl_%d_%d", os.Getpid(), getClientCount())
 	laddr, err := net.ResolveUnixAddr("unixgram", c.lsockname)
 	if err != nil {
 		return err
