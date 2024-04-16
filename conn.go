@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-const ConnMaxListenBuff = 3 * 1024 // Allow 3kB of buffer for listening to events
+const ConnMaxListenBuff = 8 * 1024 // Allow 8kB of buffer for listening to events
 
 var (
 	clientCount    uint32
@@ -34,6 +34,7 @@ func getClientCount() (rv uint32) {
 type Conn struct {
 	Interface string
 
+	listenBuffSize         int
 	lsockname              string
 	conn                   *net.UnixConn
 	currentCommandResponse chan string
@@ -47,7 +48,11 @@ type Conn struct {
 // Dial will dial the WPA control interface with the given
 // interface name
 func Dial(iface string) (*Conn, error) {
-	c := &Conn{Interface: iface, log: log.New(ioutil.Discard, "", log.LstdFlags)}
+	return DialWithBufferSize(iface, ConnMaxListenBuff)
+}
+
+func DialWithBufferSize(iface string, bufferSize int) (*Conn, error) {
+	c := &Conn{Interface: iface, listenBuffSize: bufferSize, log: log.New(ioutil.Discard, "", log.LstdFlags)}
 	err := c.init()
 	if err != nil {
 		return nil, err
@@ -69,6 +74,11 @@ func (c *Conn) Close() error {
 }
 
 func (c *Conn) listen() {
+	bufSize := c.listenBuffSize
+	if bufSize == 0 {
+		bufSize = ConnMaxListenBuff
+	}
+
 	buf := make([]byte, ConnMaxListenBuff)
 	for {
 		select {

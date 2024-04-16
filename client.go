@@ -24,16 +24,22 @@ type WPAConn interface {
 
 // Client represents a wireless client
 type Client struct {
-	conn        WPAConn
-	ScanTimeout time.Duration
-	CmdTimeout  time.Duration
-	ctx         context.Context
+	conn           WPAConn
+	ScanTimeout    time.Duration
+	CmdTimeout     time.Duration
+	ConnBufferSize int
+	ctx            context.Context
 }
 
 // NewClient will create a new client by connecting to the
 // given interface in WPA
 func NewClient(iface string) (c *Client, err error) {
+	return NewClientWithBufferSize(iface, ConnMaxListenBuff)
+}
+
+func NewClientWithBufferSize(iface string, bufferSize int) (c *Client, err error) {
 	c = new(Client)
+	c.ConnBufferSize = bufferSize
 	c.conn, err = Dial(iface)
 	if err != nil {
 		return
