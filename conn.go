@@ -75,11 +75,12 @@ func (c *Conn) Close() error {
 
 func (c *Conn) listen() {
 	bufSize := c.listenBuffSize
-	if bufSize == 0 {
+	if bufSize <= 0 {
 		bufSize = ConnMaxListenBuff
 	}
 
-	buf := make([]byte, ConnMaxListenBuff)
+	c.log.Println("create buffer with size: ", bufSize)
+	buf := make([]byte, bufSize)
 	for {
 		select {
 		case <-c.quit:
