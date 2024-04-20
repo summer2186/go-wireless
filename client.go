@@ -106,6 +106,11 @@ func (cl *Client) Status() (State, error) {
 	return s, nil
 }
 
+func (cl *Client) StartScan() (err error) {
+	err = cl.conn.SendCommandBool(CmdScan)
+	return
+}
+
 func (cl *Client) ScanResults() (nets APs, err error) {
 	scanned, err := cl.conn.SendCommand(CmdScanResults)
 	if err != nil {
