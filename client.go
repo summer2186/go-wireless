@@ -106,6 +106,15 @@ func (cl *Client) Status() (State, error) {
 	return s, nil
 }
 
+func (cl *Client) ScanResults() (nets APs, err error) {
+	scanned, err := cl.conn.SendCommand(CmdScanResults)
+	if err != nil {
+		return
+	}
+
+	return parseAP([]byte(scanned))
+}
+
 // Scan will scan for networks and return the APs it finds
 func (cl *Client) Scan() (nets APs, err error) {
 	timeout := cl.ScanTimeout
@@ -179,7 +188,7 @@ func (cl *Client) Connect(net Network) (Network, error) {
 	return cl.ConnectWithContext(ctx, net)
 }
 
-// Connect to a new or existing network
+// ConnectWithContext to a new or existing network
 func (cl *Client) ConnectWithContext(ctx context.Context, net Network) (Network, error) {
 	net, err := cl.AddOrUpdateNetworkWithContext(ctx, net)
 	if err != nil {
@@ -275,7 +284,7 @@ func (cl *Client) AddNetwork(net Network) (Network, error) {
 	return cl.AddNetworkWithContext(ctx, net)
 }
 
-// AddNetwork will add a new network
+// AddNetworkWithContext will add a new network
 func (cl *Client) AddNetworkWithContext(ctx context.Context, net Network) (Network, error) {
 	nets, err := cl.Networks()
 	if err == nil {
