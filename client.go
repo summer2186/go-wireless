@@ -391,3 +391,12 @@ func (cl *Client) GetNetworkAttr(id int, attr string) (string, error) {
 
 	return strings.TrimSpace(s), nil
 }
+
+func (cl *Client) SignalPoll() (SignalPoll, error) {
+	result, err := cl.conn.SendCommand(CmdSignalPoll)
+	if err != nil {
+		return SignalPoll{}, err
+	}
+
+	return NewSignalPoll(result), nil
+}

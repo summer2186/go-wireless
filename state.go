@@ -1,6 +1,9 @@
 package wireless
 
-import "strings"
+import (
+	"strconv"
+	"strings"
+)
 
 // State represents the current status of WPA
 type State struct {
@@ -49,6 +52,39 @@ func NewState(data string) State {
 			s.GroupCipher = bits[1]
 		case "pairwise_cipher":
 			s.PairwiseCipher = bits[1]
+		}
+	}
+
+	return s
+}
+
+type SignalPoll struct {
+	Rssi      int    `json:"rssi"`
+	LinkSpeed int    `json:"linkSpeed"`
+	Noise     int    `json:"noise"`
+	Frequency int    `json:"frequency"`
+	Width     string `json:"width"`
+}
+
+func NewSignalPoll(data string) SignalPoll {
+	s := SignalPoll{}
+	for _, l := range strings.Split(data, "\n") {
+		bits := strings.Split(strings.TrimSpace(l), "=")
+		if len(bits) < 2 {
+			continue
+		}
+
+		switch strings.ToUpper(bits[0]) {
+		case "RSSI":
+			s.Rssi, _ = strconv.Atoi(bits[1])
+		case "LINKSPEED":
+			s.LinkSpeed, _ = strconv.Atoi(bits[1])
+		case "NOISE":
+			s.Noise, _ = strconv.Atoi(bits[1])
+		case "FREQUENCY":
+			s.Frequency, _ = strconv.Atoi(bits[1])
+		case "WIDTH":
+			s.Width = bits[1]
 		}
 	}
 
